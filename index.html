@@ -234,6 +234,8 @@ function show(win){state='ended';
   // 撲到了 → 守門員回正面得意表情；被進球 → 維持撲空姿勢
   if(!win){keeper.src=IMG.keeperSave;keeper.style.width='';keeper.style.left='50%';keeper.style.transition='transform .3s ease';
     keeper.style.transform='translateX(-50%) translateY(-2%) scale(1.05)';}
+  // 結束畫面：球跟著角色一起淡出，畫面才不會留一顆球在原地
+  ball.style.transition='opacity .3s';ball.style.opacity=0;$('ballShadow').style.opacity=0;
   $('resBadge').src=win?IMG.goal:IMG.save;
   $('resMsg').textContent=win?'恭喜獲勝！':'差一點！';
   $('resSub').textContent=win?'成功騙過守門員，招待你一份餐點':'被守門員撲出，再接再厲';
@@ -243,7 +245,7 @@ function reset(){
   keeper.src=IMG.keeperReady;keeper.style.transition='';keeper.style.width='';keeper.style.left='';keeper.style.transform='translateX(-50%)';
   shooter.style.animation='';shooter.src=IMG.idle;shooter.style.transform='translateX(-50%)';
   ball.style.transition='none';ball.style.left='50%';ball.style.top='auto';ball.style.bottom='31.5%';
-  ball.style.transform='translateX(-50%) scale(1)';$('ballShadow').style.opacity=1;
+  ball.style.transform='translateX(-50%) scale(1)';ball.style.opacity=1;$('ballShadow').style.opacity=1;
   void ball.offsetWidth;ball.style.transition='';
   controls.classList.remove('hidden');prompt.style.opacity=.9;state='idle';
 }
