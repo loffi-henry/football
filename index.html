@@ -1,0 +1,276 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+<title>世界盃 12 碼 PK</title>
+<style>
+  *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
+  html,body{height:100%;font-family:"PingFang TC","Microsoft JhengHei",system-ui,sans-serif;}
+  body{background:#0a1422;display:flex;align-items:center;justify-content:center;overflow:hidden;
+    user-select:none;-webkit-user-select:none;}
+  /* 16:9 舞台，置中letterbox */
+  #stage{position:relative;width:min(100vw,177.78vh);height:min(56.25vw,100vh);
+    overflow:hidden;background:#86c5ea;box-shadow:0 0 60px rgba(0,0,0,.6);}
+
+  /* ===== 完整球場背景（含球門/觀眾/標線） ===== */
+  #bg{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;z-index:0;}
+
+  /* ===== 角色 / 球 ===== */
+  .shadow{position:absolute;z-index:4;border-radius:50%;
+    background:radial-gradient(closest-side,rgba(10,25,15,.4),rgba(10,25,15,0));pointer-events:none;}
+  #keeperShadow{width:5%;height:1.4%;left:50%;top:45%;transform:translateX(-50%);opacity:.38;}
+  #shooterShadow{width:20%;height:6%;left:50%;bottom:5%;transform:translateX(-50%);opacity:0;transition:opacity .2s;}
+  #ballShadow{width:3.8%;height:1.4%;left:50%;bottom:30%;transform:translateX(-50%);z-index:4;transition:opacity .2s;}
+
+  .sprite{position:absolute;z-index:5;pointer-events:none;}
+  #keeper{width:8.5%;left:50%;top:33%;transform:translateX(-50%);transform-origin:50% 92%;
+    filter:drop-shadow(0 6px 5px rgba(0,0,0,.25));
+    transition:transform .4s cubic-bezier(.3,1.1,.5,1), top .4s ease, left .4s ease, width .1s;z-index:4;}
+  #shooter{width:25%;left:50%;bottom:-17%;transform:translateX(-50%);opacity:1;
+    transform-origin:50% 100%;z-index:6;filter:drop-shadow(0 14px 10px rgba(0,0,0,.34));}
+  @keyframes kickAnim{
+    0%{transform:translateX(-50%) translateY(0) scale(1);}
+    26%{transform:translateX(-50%) translateY(2%) scale(.97);}
+    52%{transform:translateX(-50%) translateY(-5%) scale(1.06) rotate(-2deg);}
+    100%{transform:translateX(-50%) translateY(0) scale(1);}}
+  #ball{width:4.4%;left:50%;bottom:31.5%;transform:translateX(-50%) scale(1);z-index:5;
+    filter:drop-shadow(0 4px 4px rgba(0,0,0,.3));
+    transition:transform .58s cubic-bezier(.4,.05,.32,1), left .58s cubic-bezier(.4,.05,.32,1), top .58s cubic-bezier(.4,.05,.32,1);}
+
+  /* 暈影 */
+  #vignette{position:absolute;inset:0;z-index:7;pointer-events:none;
+    background:radial-gradient(120% 90% at 50% 40%,transparent 55%,rgba(8,18,35,.34) 100%);}
+
+  /* ===== HUD ===== */
+  .hud{position:absolute;inset:0;z-index:10;pointer-events:none;}
+  .topbar{position:absolute;top:2.5%;left:0;right:0;display:flex;justify-content:center;align-items:center;gap:1.4vh;}
+  .team{display:flex;align-items:center;gap:1vh;background:rgba(255,255,255,.86);
+    border:2px solid #fff;border-radius:3vh;padding:.5vh 1.6vh .5vh .5vh;box-shadow:0 .8vh 2vh rgba(10,25,50,.28);}
+  .team.r{flex-direction:row-reverse;}
+  .team img{width:5vh;height:5vh;border-radius:50%;object-fit:cover;background:#dde8f5;}
+  .team b{font-size:2vh;color:#16233a;}
+  .vs{width:5vh;height:5vh;border-radius:50%;display:flex;align-items:center;justify-content:center;
+    font-size:2.3vh;font-weight:900;color:#fff;background:linear-gradient(180deg,#ffc24d,#ff8f1f);
+    box-shadow:0 .6vh 1.6vh rgba(0,0,0,.3);}
+  .brand{position:absolute;top:2.6%;left:2.5%;color:#fff;font-weight:800;font-size:2vh;
+    letter-spacing:.4vh;padding:.7vh 1.6vh;border-radius:1.4vh;
+    background:rgba(12,22,40,.55);backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);
+    border:1px solid rgba(255,255,255,.18);box-shadow:0 .6vh 1.6vh rgba(0,0,0,.3);}
+
+  .prompt{position:absolute;top:11.5%;left:0;right:0;text-align:center;color:#fff;
+    font-size:1.9vh;letter-spacing:.6vh;text-shadow:0 2px 8px rgba(0,0,0,.6);transition:opacity .3s;}
+  .controls{position:absolute;bottom:3.5%;left:0;right:0;display:flex;justify-content:center;gap:1.6vh;
+    pointer-events:auto;transition:opacity .3s,transform .3s;}
+  .controls.hidden{opacity:0;transform:translateY(3vh);pointer-events:none;}
+  .aim{width:20vh;max-width:30%;cursor:pointer;border:none;border-radius:2vh;padding:1.4vh 1vh;
+    background:linear-gradient(180deg,#ffffff,#e9f0f7);box-shadow:0 .9vh 0 #bcc8d6,0 1.4vh 2.4vh rgba(10,30,60,.3);
+    font-size:2.1vh;font-weight:800;color:#16335c;transition:transform .09s,box-shadow .09s;}
+  .aim:active{transform:translateY(.7vh);box-shadow:0 .2vh 0 #bcc8d6,0 .5vh 1vh rgba(10,30,60,.3);}
+  .aim small{display:block;font-size:1.3vh;color:#7d8ca5;font-weight:700;letter-spacing:.3vh;margin-top:.3vh;}
+
+  /* ===== 結果 ===== */
+  #scrim{position:absolute;inset:0;z-index:14;background:rgba(8,18,38,.5);opacity:0;pointer-events:none;transition:opacity .35s;}
+  #scrim.show{opacity:1;}
+  #result{position:absolute;inset:0;z-index:15;display:flex;flex-direction:column;align-items:center;
+    justify-content:center;gap:.4vh;opacity:0;pointer-events:none;transition:opacity .35s;}
+  #result.show{opacity:1;pointer-events:auto;}
+  #result .badge{height:38vh;transform:scale(.5) rotate(-6deg);filter:drop-shadow(0 1.5vh 2.5vh rgba(0,0,0,.4));
+    transition:transform .55s cubic-bezier(.2,1.5,.4,1);}
+  #result.show .badge{transform:scale(1) rotate(0);}
+  #result .msg{font-size:3vh;font-weight:900;color:#fff;text-shadow:0 2px 10px rgba(0,0,0,.6);margin-top:.6vh;}
+  #result .sub{font-size:2vh;color:#fff;opacity:.95;text-shadow:0 2px 8px rgba(0,0,0,.55);}
+  #result button{margin-top:2vh;cursor:pointer;border:none;border-radius:4vh;padding:1.5vh 5vh;
+    font-size:2.2vh;font-weight:900;color:#7a3b00;letter-spacing:.4vh;
+    background:linear-gradient(180deg,#ffd884,#ff9f1c);box-shadow:0 1vh 2.4vh rgba(0,0,0,.35);}
+
+  #loader{position:absolute;inset:0;z-index:50;background:#1c44b0;color:#fff;display:flex;
+    flex-direction:column;align-items:center;justify-content:center;gap:2vh;transition:opacity .5s;}
+  .spin{width:5vh;height:5vh;border-radius:50%;border:.5vh solid rgba(255,255,255,.3);
+    border-top-color:#ffd23c;animation:sp 1s linear infinite;}
+  @keyframes sp{to{transform:rotate(360deg)}}
+  .confetti{position:absolute;top:-3vh;width:1.2vh;height:1.7vh;z-index:16;border-radius:2px;pointer-events:none;}
+  @keyframes fall{to{transform:translateY(110vh) rotate(680deg);opacity:.85;}}
+</style>
+</head>
+<body>
+<div id="stage">
+  <img id="bg" alt="">
+
+  <div class="shadow" id="keeperShadow"></div>
+  <div class="shadow" id="ballShadow"></div>
+  <div class="shadow" id="shooterShadow"></div>
+  <img id="keeper" class="sprite" alt="">
+  <img id="ball" class="sprite" alt="">
+  <img id="shooter" class="sprite" alt="">
+  <div id="vignette"></div>
+
+  <div class="hud">
+    <div class="brand">世界盃 12 碼 PK</div>
+    <div class="topbar">
+      <div class="team"><img id="avA" alt=""><b>射手</b></div>
+      <div class="vs">VS</div>
+      <div class="team r"><img id="avB" alt=""><b>門將</b></div>
+    </div>
+    <div class="prompt" id="prompt">選擇射門路線</div>
+    <div class="controls" id="controls">
+      <button class="aim" data-dir="left">左路<small>LEFT</small></button>
+      <button class="aim" data-dir="center">中路<small>CENTER</small></button>
+      <button class="aim" data-dir="right">右路<small>RIGHT</small></button>
+    </div>
+  </div>
+
+  <div id="scrim"></div>
+  <div id="result">
+    <img class="badge" id="resBadge" alt="">
+    <div class="msg" id="resMsg"></div>
+    <div class="sub" id="resSub"></div>
+    <button id="againBtn">再踢一球</button>
+  </div>
+
+  <div id="loader"><div class="spin"></div><div>球場準備中…</div></div>
+</div>
+
+<script>
+/* ===== 抽籤袋（每 BAG_SIZE 球固定中 BAG_WINS 球） ===== */
+const BAG_SIZE=6,BAG_WINS=2;
+let _bag=[];
+function refillBag(){_bag=[];for(let i=0;i<BAG_SIZE;i++)_bag.push(i<BAG_WINS);
+  for(let i=_bag.length-1;i>0;i--){const j=(Math.random()*(i+1))|0;[_bag[i],_bag[j]]=[_bag[j],_bag[i]];}}
+function drawShot(){if(!_bag.length)refillBag();return _bag.pop();}
+
+/* ===== 素材（去白底） ===== */
+const DIR='assets/soccer_image/';
+const AV='?v='+Date.now();   // 避免瀏覽器快取舊圖
+const SRC={idle:'shooter_back.png',kick:'shooter_back_kick.png',
+  keeperReady:'keeper_ready.png',keeperSave:'keeper_save.png',
+  // 撲救圖（依「頭部朝向」判斷實際撲救方向，整套都用、隨機變化）
+  dvL1:'keeper_dive_left.png',dvL2:'keeper_dive_left_low.png',dvL3:'keeper_dive_right.png',dvL4:'keeper_dive_right_02.png',
+  dvR1:'keeper_dive_left_02.png',dvR2:'keeper_dive_left_03.png',dvR3:'keeper_dive_left_04.png',dvR4:'keeper_dive_right_low.png',
+  ball:'ball.png',goal:'badge_goal.png',save:'badge_save.png',
+  avA:'avatar_shooter.png',avB:'avatar_keeper.png'};
+const DIVE_L=['dvL1','dvL2','dvL3','dvL4'], DIVE_R=['dvR1','dvR2','dvR3','dvR4'];
+// 射手踢球圖內含一顆球，去背後抹掉（守門員圖皆無球）
+const ERASE={kick:{cx:0.80,cy:0.42,r:0.17}};
+const NOERODE=new Set();
+const RAW=new Set(['keeperReady','keeperSave']);   // 已是真透明檔，直接用、不去背
+const IMG={};
+function cutout(img,erase,noErode){const w=img.naturalWidth,h=img.naturalHeight;
+  const cv=document.createElement('canvas');cv.width=w;cv.height=h;const ctx=cv.getContext('2d');ctx.drawImage(img,0,0);
+  let id;try{id=ctx.getImageData(0,0,w,h);}catch(e){return img.src;}
+  const d=id.data,seen=new Uint8Array(w*h),st=[];
+  const bg=i=>d[i]>226&&d[i+1]>226&&d[i+2]>226;
+  const push=(x,y)=>{if(x<0||y<0||x>=w||y>=h)return;const p=y*w+x;if(seen[p])return;seen[p]=1;st.push(p);};
+  for(let x=0;x<w;x++){push(x,0);push(x,h-1);}for(let y=0;y<h;y++){push(0,y);push(w-1,y);}
+  while(st.length){const p=st.pop(),i=p*4;if(!bg(i))continue;d[i+3]=0;const x=p%w,y=(p/w)|0;
+    push(x+1,y);push(x-1,y);push(x,y+1);push(x,y-1);}
+  // 去白邊：把殘留的淺色描邊(鄰接透明)再侵蝕兩圈（球門例外，保留白網）
+  if(!noErode)for(let pass=0;pass<3;pass++){const clr=[];
+    for(let y=0;y<h;y++)for(let x=0;x<w;x++){const p=y*w+x,i=p*4;
+      if(d[i+3]===0)continue;
+      if(d[i]>188&&d[i+1]>188&&d[i+2]>188){
+        if((x>0&&d[i-4+3]===0)||(x<w-1&&d[i+4+3]===0)||(y>0&&d[i-w*4+3]===0)||(y<h-1&&d[i+w*4+3]===0))clr.push(i);
+      }}
+    for(const i of clr)d[i+3]=0;}
+  if(erase){const ex=erase.cx*w,ey=erase.cy*h,er2=(erase.r*w)*(erase.r*w);
+    for(let y=0;y<h;y++)for(let x=0;x<w;x++){const dx=x-ex,dy=y-ey;
+      if(dx*dx+dy*dy<er2)d[(y*w+x)*4+3]=0;}}
+  ctx.putImageData(id,0,0);return cv.toDataURL('image/png');}
+function loadImg(src){return new Promise(r=>{const im=new Image();im.crossOrigin='anonymous';
+  im.onload=()=>r(im);im.onerror=()=>r(null);im.src=src;});}
+let STADIUM='';
+async function prepare(){
+  await Promise.all(Object.keys(SRC).map(async k=>{
+    const im=await loadImg(DIR+encodeURIComponent(SRC[k])+AV);
+    IMG[k]= im ? (RAW.has(k) ? im.src : cutout(im,ERASE[k],NOERODE.has(k))) : '';}));
+  const b=await loadImg(DIR+'bg_stadium.png'+AV);STADIUM=b?b.src:'';
+}
+
+/* ===== 流程 ===== */
+const $=id=>document.getElementById(id);
+const shooter=$('shooter'),keeper=$('keeper'),ball=$('ball'),controls=$('controls'),prompt=$('prompt');
+let state='idle';
+const TARGET={left:{l:43,t:29},center:{l:50,t:33},right:{l:57,t:29}};
+
+function setScene(){
+  $('bg').src=STADIUM;
+  keeper.src=IMG.keeperReady; ball.src=IMG.ball; shooter.src=IMG.idle;
+  $('avA').src=IMG.avA; $('avB').src=IMG.avB;
+}
+
+function shoot(dir){
+  if(state!=='idle')return;
+  state='shooting';controls.classList.add('hidden');prompt.style.opacity=0;
+  sfx.kick();
+  const isGoal=drawShot();
+  // 背面射手踢球（換成背面踢球圖，已抹掉內含的球）
+  shooter.src=IMG.kick;
+  shooter.style.animation='none';void shooter.offsetWidth;shooter.style.animation='kickAnim .45s ease';
+  let kdir = dir==='center' ? (isGoal?(Math.random()<.5?'left':'right'):'center')
+            : (isGoal?(dir==='left'?'right':'left'):dir);
+  // 進球→球飛向角落；撲到→球落在守門員(kdir)身上
+  const SAVE_T={left:{l:39,t:38},center:{l:50,t:39},right:{l:61,t:38}};
+  const tgt = isGoal ? TARGET[dir] : SAVE_T[kdir];
+  setTimeout(()=>{
+    ball.style.left=tgt.l+'%';ball.style.top=tgt.t+'%';ball.style.bottom='auto';
+    ball.style.transform='translateX(-50%) scale(.4)';
+    $('ballShadow').style.opacity=0;
+    diveKeeper(kdir);sfx.swoosh();
+  },230);
+  setTimeout(()=>resolve(isGoal),230+600);
+}
+function diveKeeper(d){
+  if(d==='center'){keeper.style.transform='translateX(-50%) translateY(-3%) scale(1.05)';return;}
+  const pool = d==='right'?DIVE_R:DIVE_L;
+  keeper.src = IMG[pool[(Math.random()*pool.length)|0]];   // 整套撲救圖隨機挑一張（方向正確）
+  keeper.style.width='11.5%';                               // 撲救是橫向姿勢，略大一點
+  keeper.style.left = d==='right' ? '63%' : '37%';          // 只稍微撲過球門柱（柱約34%/66%）
+  keeper.style.transform='translateX(-50%) translateY(8%)';
+}
+function resolve(isGoal){
+  if(isGoal){sfx.cheer();confetti();show(true);}else{sfx.save();show(false);}
+}
+function show(win){state='ended';
+  // 撲到了 → 守門員回正面得意表情；被進球 → 維持撲空姿勢
+  if(!win){keeper.src=IMG.keeperSave;keeper.style.width='';keeper.style.left='50%';keeper.style.transition='transform .3s ease';
+    keeper.style.transform='translateX(-50%) translateY(-2%) scale(1.05)';}
+  $('resBadge').src=win?IMG.goal:IMG.save;
+  $('resMsg').textContent=win?'恭喜獲勝！':'差一點！';
+  $('resSub').textContent=win?'成功騙過守門員，招待你一份餐點':'被守門員撲出，再接再厲';
+  $('scrim').classList.add('show');$('result').classList.add('show');}
+function reset(){
+  $('result').classList.remove('show');$('scrim').classList.remove('show');
+  keeper.src=IMG.keeperReady;keeper.style.transition='';keeper.style.width='';keeper.style.left='';keeper.style.transform='translateX(-50%)';
+  shooter.style.animation='';shooter.src=IMG.idle;shooter.style.transform='translateX(-50%)';
+  ball.style.transition='none';ball.style.left='50%';ball.style.top='auto';ball.style.bottom='31.5%';
+  ball.style.transform='translateX(-50%) scale(1)';$('ballShadow').style.opacity=1;
+  void ball.offsetWidth;ball.style.transition='';
+  controls.classList.remove('hidden');prompt.style.opacity=.9;state='idle';
+}
+$('againBtn').onclick=reset;
+document.querySelectorAll('.aim').forEach(b=>b.addEventListener('click',()=>{ctxResume();shoot(b.dataset.dir);}));
+
+/* ===== 音效 ===== */
+const sfx=(()=>{let ctx;const ac=()=>ctx||(ctx=new (window.AudioContext||window.webkitAudioContext)());
+  function tone(f,t,ty,dur,v){const a=ac(),o=a.createOscillator(),g=a.createGain();o.type=ty;
+    o.frequency.setValueAtTime(f,a.currentTime+t);g.gain.setValueAtTime(v,a.currentTime+t);
+    g.gain.exponentialRampToValueAtTime(.001,a.currentTime+t+dur);o.connect(g).connect(a.destination);
+    o.start(a.currentTime+t);o.stop(a.currentTime+t+dur);}
+  function noise(t,dur,v){const a=ac(),b=a.createBuffer(1,a.sampleRate*dur,a.sampleRate),dd=b.getChannelData(0);
+    for(let i=0;i<dd.length;i++)dd[i]=(Math.random()*2-1)*(1-i/dd.length);const s=a.createBufferSource();
+    s.buffer=b;const g=a.createGain();g.gain.value=v;const f=a.createBiquadFilter();f.type='bandpass';
+    f.frequency.value=1100;s.connect(f).connect(g).connect(a.destination);s.start(a.currentTime+t);}
+  return{kick(){tone(150,0,'sine',.18,.5);tone(90,0,'triangle',.12,.4);},swoosh(){noise(0,.25,.14);},
+    save(){tone(110,0,'square',.18,.3);},cheer(){noise(0,1,.3);for(let i=0;i<6;i++)tone(500+i*120,i*.04,'sine',.5,.06);}};})();
+function ctxResume(){try{const a=new (window.AudioContext||window.webkitAudioContext)();a.resume&&a.resume();}catch(e){}}
+
+function confetti(){const c=['#ffd23c','#ff5a3d','#37d67a','#3b9eff','#fff'];
+  for(let i=0;i<60;i++){const d=document.createElement('div');d.className='confetti';
+    d.style.left=Math.random()*100+'%';d.style.background=c[(Math.random()*c.length)|0];
+    d.style.animation=`fall ${1.1+Math.random()*1.2}s linear ${Math.random()*.3}s forwards`;
+    document.getElementById('stage').appendChild(d);setTimeout(()=>d.remove(),2800);}}
+
+prepare().then(()=>{setScene();$('loader').style.opacity=0;setTimeout(()=>$('loader').style.display='none',500);});
+</script>
+</body>
+</html>

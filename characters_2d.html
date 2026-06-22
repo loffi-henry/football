@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>足球角色 PNG 素材檢視</title>
+<style>
+  :root{--ink:#071b44;--line:#d9dee8;--bg:#eef2f7;--red:#d93a2f;--green:#277a36;}
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);font-family:"PingFang TC",system-ui,sans-serif;color:var(--ink);}
+  header{padding:28px 32px 18px;background:#fff;border-bottom:1px solid var(--line);}
+  h1{margin:0;font-size:28px;letter-spacing:.5px}
+  p{margin:8px 0 0;color:#4d5f78}
+  main{padding:24px 32px 40px;}
+  section{margin-bottom:28px}
+  h2{font-size:18px;margin:0 0 12px;display:flex;align-items:center;gap:10px}
+  h2::before{content:"";width:10px;height:10px;border-radius:50%;background:var(--red)}
+  section.keeper h2::before{background:var(--green)}
+  .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:14px}
+  .card{background:#fff;border:1px solid var(--line);border-radius:12px;padding:12px;min-height:190px;display:flex;flex-direction:column;align-items:center;justify-content:space-between;box-shadow:0 8px 18px rgba(20,40,80,.06)}
+  .card img{width:128px;height:128px;object-fit:contain;background:linear-gradient(45deg,#f8fafc 25%,transparent 25%),linear-gradient(-45deg,#f8fafc 25%,transparent 25%),linear-gradient(45deg,transparent 75%,#f8fafc 75%),linear-gradient(-45deg,transparent 75%,#f8fafc 75%);background-size:18px 18px;background-position:0 0,0 9px,9px -9px,-9px 0}
+  .card span{font-size:11px;line-height:1.25;text-align:center;color:#43536d;word-break:break-word}
+  .sheet{display:flex;gap:14px;flex-wrap:wrap}
+  .sheet a{display:block;background:#fff;border:1px solid var(--line);border-radius:12px;padding:10px;text-decoration:none;color:var(--ink);font-size:12px;box-shadow:0 8px 18px rgba(20,40,80,.06)}
+  .sheet img{display:block;width:min(420px,88vw);height:auto;margin-bottom:8px;border-radius:8px}
+</style>
+</head>
+<body>
+<header>
+  <h1>足球角色 PNG 素材檢視</h1>
+  <p>此頁直接讀取 assets/individual_pngs 內的獨立 PNG，主遊戲也使用同一批角色素材。</p>
+</header>
+<main>
+  <section>
+    <h2>總表</h2>
+    <div class="sheet" id="sheets"></div>
+  </section>
+  <section>
+    <h2>射手 Shooter</h2>
+    <div class="grid" id="shooter"></div>
+  </section>
+  <section class="keeper">
+    <h2>守門員 Goalkeeper</h2>
+    <div class="grid" id="keeper"></div>
+  </section>
+  <section>
+    <h2>Sprite / UI / Ball</h2>
+    <div class="grid" id="misc"></div>
+  </section>
+</main>
+<script>
+const base = 'assets/individual_pngs/';
+const sheets = [
+  '01_complete_model_sheet.png',
+  '02_shooter_character_sheet.png',
+  '03_goalkeeper_character_sheet.png',
+  '04_sprite_sheet_concept.png',
+  '05_ui_avatar_character_select.png',
+  '06_in_game_penalty_view.png'
+];
+const files = [
+  'shooter_turnaround_front.png','shooter_turnaround_side.png','shooter_turnaround_back.png',
+  'shooter_expression_neutral.png','shooter_expression_focused.png','shooter_expression_confident.png','shooter_expression_shout.png','shooter_expression_victory.png',
+  'shooter_pose_idle.png','shooter_pose_ready_to_shoot.png','shooter_pose_kick.png','shooter_pose_celebrate.png',
+  'goalkeeper_turnaround_front.png','goalkeeper_turnaround_side.png','goalkeeper_turnaround_back.png',
+  'goalkeeper_expression_neutral.png','goalkeeper_expression_focused.png','goalkeeper_expression_alert.png','goalkeeper_expression_shout.png','goalkeeper_expression_victory.png',
+  'goalkeeper_pose_ready.png','goalkeeper_pose_dive_left.png','goalkeeper_pose_dive_right.png','goalkeeper_pose_successful_save.png',
+  'sprite_shooter_idle_01.png','sprite_shooter_idle_02.png','sprite_shooter_idle_03.png','sprite_shooter_idle_04.png','sprite_shooter_idle_05.png','sprite_shooter_idle_06.png',
+  'sprite_shooter_kick_01.png','sprite_shooter_kick_02.png','sprite_shooter_kick_03.png','sprite_shooter_kick_04.png','sprite_shooter_kick_05.png',
+  'sprite_goalkeeper_ready_01.png','sprite_goalkeeper_ready_02.png','sprite_goalkeeper_ready_03.png','sprite_goalkeeper_ready_04.png','sprite_goalkeeper_ready_05.png','sprite_goalkeeper_ready_06.png',
+  'sprite_goalkeeper_dive_left_01.png','sprite_goalkeeper_dive_left_02.png','sprite_goalkeeper_dive_left_03.png','sprite_goalkeeper_dive_left_04.png',
+  'sprite_goalkeeper_dive_right_01.png','sprite_goalkeeper_dive_right_02.png','sprite_goalkeeper_dive_right_03.png','sprite_goalkeeper_dive_right_04.png',
+  'ui_avatar_shooter.png','ui_avatar_goalkeeper.png','ui_character_card_shooter.png','ui_character_card_goalkeeper.png','ball_classic_black_white.png'
+];
+function card(file, root=''){
+  const div=document.createElement('div');
+  div.className='card';
+  div.innerHTML=`<img src="${root}${file}" alt="${file}"><span>${file}</span>`;
+  return div;
+}
+function sheet(file){
+  const a=document.createElement('a');
+  a.href='assets/'+file;
+  a.innerHTML=`<img src="assets/${file}" alt="${file}"><b>${file}</b>`;
+  return a;
+}
+sheets.forEach(f=>document.getElementById('sheets').appendChild(sheet(f)));
+files.forEach(f=>{
+  const target = f.startsWith('shooter_') ? 'shooter' : f.startsWith('goalkeeper_') ? 'keeper' : 'misc';
+  document.getElementById(target).appendChild(card(f, base));
+});
+</script>
+</body>
+</html>
