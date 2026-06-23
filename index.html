@@ -34,7 +34,7 @@
   #keeper{width:8.5%;left:50%;top:33%;transform:translateX(-50%);transform-origin:50% 92%;
     filter:drop-shadow(0 6px 5px rgba(0,0,0,.25));
     transition:transform .4s cubic-bezier(.3,1.1,.5,1), top .4s ease, left .4s ease, width .1s;z-index:4;}
-  #shooter{width:20%;left:50%;bottom:-8%;transform:translateX(-50%);opacity:1;
+  #shooter{width:16%;left:50%;bottom:-8%;transform:translateX(-50%);opacity:1;
     transform-origin:50% 100%;z-index:6;filter:drop-shadow(0 14px 10px rgba(0,0,0,.34));}
   @keyframes kickAnim{
     0%{transform:translateX(-50%) translateY(0) scale(1);}
@@ -67,14 +67,16 @@
 
   .prompt{position:absolute;top:11.5%;left:0;right:0;text-align:center;color:#fff;
     font-size:1.9vh;letter-spacing:.6vh;text-shadow:0 2px 8px rgba(0,0,0,.6);transition:opacity .3s;}
-  .controls{position:absolute;bottom:3.5%;left:0;right:0;display:flex;justify-content:center;gap:1.6vh;
+  .controls{position:absolute;bottom:1%;left:0;right:0;display:flex;justify-content:center;gap:1vh;
     pointer-events:auto;transition:opacity .3s,transform .3s;}
   .controls.hidden{opacity:0;transform:translateY(3vh);pointer-events:none;}
-  .aim{width:20vh;max-width:30%;cursor:pointer;border:none;border-radius:2vh;padding:1.4vh 1vh;
-    background:linear-gradient(180deg,#ffffff,#e9f0f7);box-shadow:0 .9vh 0 #bcc8d6,0 1.4vh 2.4vh rgba(10,30,60,.3);
-    font-size:2.1vh;font-weight:800;color:#16335c;transition:transform .09s,box-shadow .09s;}
-  .aim:active{transform:translateY(.7vh);box-shadow:0 .2vh 0 #bcc8d6,0 .5vh 1vh rgba(10,30,60,.3);}
-  .aim small{display:block;font-size:1.3vh;color:#7d8ca5;font-weight:700;letter-spacing:.3vh;margin-top:.3vh;}
+  /* 透明玻璃按鈕、約縮小一半，避免擋到射手 */
+  .aim{width:10vh;max-width:20%;cursor:pointer;border:1.5px solid rgba(255,255,255,.55);border-radius:1.3vh;padding:.7vh .5vh;
+    background:rgba(255,255,255,.16);backdrop-filter:blur(3px);-webkit-backdrop-filter:blur(3px);
+    box-shadow:0 .4vh 1vh rgba(10,30,60,.22);
+    font-size:1.4vh;font-weight:800;color:#fff;text-shadow:0 1px 4px rgba(0,0,0,.6);transition:transform .09s,background .09s;}
+  .aim:active{transform:translateY(.3vh) scale(.97);background:rgba(255,255,255,.3);}
+  .aim small{display:block;font-size:.95vh;color:rgba(255,255,255,.82);font-weight:700;letter-spacing:.25vh;margin-top:.2vh;}
 
   /* ===== 結果 ===== */
   #scrim{position:absolute;inset:0;z-index:14;background:rgba(8,18,38,.5);opacity:0;pointer-events:none;transition:opacity .35s;}
@@ -82,7 +84,7 @@
   #result{position:absolute;inset:0;z-index:15;display:flex;flex-direction:column;align-items:center;
     justify-content:center;gap:.4vh;opacity:0;pointer-events:none;transition:opacity .35s;}
   #result.show{opacity:1;pointer-events:auto;}
-  #result .badge{height:38vh;transform:scale(.5) rotate(-6deg);filter:drop-shadow(0 1.5vh 2.5vh rgba(0,0,0,.4));
+  #result .badge{height:24.7vh;transform:scale(.5) rotate(-6deg);filter:drop-shadow(0 1.5vh 2.5vh rgba(0,0,0,.4));
     transition:transform .55s cubic-bezier(.2,1.5,.4,1);}
   #result.show .badge{transform:scale(1) rotate(0);}
   #result .msg{font-size:3vh;font-weight:900;color:#fff;text-shadow:0 2px 10px rgba(0,0,0,.6);margin-top:.6vh;}
@@ -202,7 +204,7 @@ let state='idle';
 const TARGET={left:{l:43,t:29},center:{l:50,t:33},right:{l:57,t:29}};
 
 // 各姿勢的畫面寬度（新圖長寬比不一，逐一校正讓人物大小協調）
-const SHT_W={idle:20,kickL:26,kickC:15,kickR:20,cheer:21,regret:20};
+const SHT_W={idle:16,kickL:21,kickC:12,kickR:16,cheer:17,regret:16};
 function setShooter(p){shooter.src=IMG[p];shooter.style.width=SHT_W[p]+'%';}
 
 function setScene(){
