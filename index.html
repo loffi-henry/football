@@ -279,10 +279,10 @@ function ctxResume(){try{const a=new (window.AudioContext||window.webkitAudioCon
 /* ===== MP3 音效（assets/音效/） ===== */
 const SND='assets/'+encodeURIComponent('音效')+'/';
 const sndUrl=f=>SND+encodeURIComponent(f);
-const bgm=new Audio(sndUrl('背景音樂.mp3'));bgm.loop=true;bgm.volume=.12;
+const bgm=new Audio(sndUrl('背景音樂.mp3'));bgm.loop=true;bgm.volume=.35;
 let bgmStarted=false,resultTimer=0,activeSnds=[];
 function startBgm(){if(bgmStarted)return;bgmStarted=true;bgm.play().catch(()=>{});}
-function playSnd(f,vol){const a=new Audio(sndUrl(f));a.volume=vol==null?.55:vol;a.play().catch(()=>{});activeSnds.push(a);return a;}
+function playSnd(f,vol){const a=new Audio(sndUrl(f));a.volume=vol==null?1:vol;a.play().catch(()=>{});activeSnds.push(a);return a;}
 function stopSnds(){clearTimeout(resultTimer);activeSnds.forEach(a=>{a.pause();a.currentTime=0;});activeSnds=[];}
 
 function confetti(){const c=['#ffd23c','#ff5a3d','#37d67a','#3b9eff','#fff'];
