@@ -235,7 +235,8 @@ function diveKeeper(d){
   keeper.style.transform='translateX(-50%) translateY(8%)';
 }
 function resolve(isGoal){
-  if(isGoal){sfx.cheer();confetti();show(true);}else{sfx.save();show(false);}
+  if(isGoal){playSnd('踢球進網歡呼音效.mp3');confetti();show(true);}
+  else{playSnd('missed.mp3');show(false);}
 }
 function show(win){state='ended';
   // 撲到了 → 守門員回正面得意表情；被進球 → 維持撲空姿勢
@@ -246,8 +247,11 @@ function show(win){state='ended';
   $('resBadge').src=win?IMG.goal:IMG.save;
   $('resMsg').textContent=win?'恭喜獲勝！':'差一點！';
   $('resSub').textContent=win?'成功騙過守門員，招待你一份餐點':'被守門員撲出，再接再厲';
-  $('scrim').classList.add('show');$('result').classList.add('show');}
+  $('scrim').classList.add('show');$('result').classList.add('show');
+  // 結果畫面再補一段：獲勝→中獎音效；落敗→倒彩聲
+  resultTimer=setTimeout(()=>playSnd(win?'中獎音效.mp3':'倒彩聲.mp3'),650);}
 function reset(){
+  stopSnds();
   $('result').classList.remove('show');$('scrim').classList.remove('show');
   keeper.src=IMG.keeperReady;keeper.style.transition='';keeper.style.width='';keeper.style.left='';keeper.style.transform='translateX(-50%)';
   shooter.style.animation='';shooter.src=IMG.idle;shooter.style.transform='translateX(-50%)';
@@ -257,7 +261,7 @@ function reset(){
   controls.classList.remove('hidden');prompt.style.opacity=.9;state='idle';
 }
 $('againBtn').onclick=reset;
-document.querySelectorAll('.aim').forEach(b=>b.addEventListener('click',()=>{ctxResume();shoot(b.dataset.dir);}));
+document.querySelectorAll('.aim').forEach(b=>b.addEventListener('click',()=>{ctxResume();startBgm();shoot(b.dataset.dir);}));
 
 /* ===== 音效 ===== */
 const sfx=(()=>{let ctx;const ac=()=>ctx||(ctx=new (window.AudioContext||window.webkitAudioContext)());
@@ -269,9 +273,17 @@ const sfx=(()=>{let ctx;const ac=()=>ctx||(ctx=new (window.AudioContext||window.
     for(let i=0;i<dd.length;i++)dd[i]=(Math.random()*2-1)*(1-i/dd.length);const s=a.createBufferSource();
     s.buffer=b;const g=a.createGain();g.gain.value=v;const f=a.createBiquadFilter();f.type='bandpass';
     f.frequency.value=1100;s.connect(f).connect(g).connect(a.destination);s.start(a.currentTime+t);}
-  return{kick(){tone(150,0,'sine',.18,.5);tone(90,0,'triangle',.12,.4);},swoosh(){noise(0,.25,.14);},
-    save(){tone(110,0,'square',.18,.3);},cheer(){noise(0,1,.3);for(let i=0;i<6;i++)tone(500+i*120,i*.04,'sine',.5,.06);}};})();
+  return{kick(){tone(150,0,'sine',.18,.5);tone(90,0,'triangle',.12,.4);},swoosh(){noise(0,.25,.14);}};})();
 function ctxResume(){try{const a=new (window.AudioContext||window.webkitAudioContext)();a.resume&&a.resume();}catch(e){}}
+
+/* ===== MP3 音效（assets/音效/） ===== */
+const SND='assets/'+encodeURIComponent('音效')+'/';
+const sndUrl=f=>SND+encodeURIComponent(f);
+const bgm=new Audio(sndUrl('背景音樂.mp3'));bgm.loop=true;bgm.volume=.35;
+let bgmStarted=false,resultTimer=0,activeSnds=[];
+function startBgm(){if(bgmStarted)return;bgmStarted=true;bgm.play().catch(()=>{});}
+function playSnd(f,vol){const a=new Audio(sndUrl(f));a.volume=vol==null?1:vol;a.play().catch(()=>{});activeSnds.push(a);return a;}
+function stopSnds(){clearTimeout(resultTimer);activeSnds.forEach(a=>{a.pause();a.currentTime=0;});activeSnds=[];}
 
 function confetti(){const c=['#ffd23c','#ff5a3d','#37d67a','#3b9eff','#fff'];
   for(let i=0;i<60;i++){const d=document.createElement('div');d.className='confetti';
