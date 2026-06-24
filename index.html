@@ -306,9 +306,12 @@ function startBgm(){if(bgmStarted)return;const p=bgm.play();
 // 背景音樂：第一次與頁面互動(點/觸/按鍵任何地方)就帶出，不必等到射門
 ['pointerdown','touchstart','keydown'].forEach(ev=>window.addEventListener(ev,startBgm,{capture:true}));
 let bgmFade=0;
-function fadeBgm(to,dur){cancelAnimationFrame(bgmFade);const from=bgm.volume,t0=performance.now();
-  (function step(now){const k=dur<=0?1:Math.min(1,(now-t0)/dur);bgm.volume=Math.max(0,Math.min(1,from+(to-from)*k));
-    if(k<1)bgmFade=requestAnimationFrame(step);})(performance.now());}
+// 用計時器淡入淡出（不依賴 requestAnimationFrame，背景分頁也會完成）
+function fadeBgm(to,dur){clearInterval(bgmFade);to=Math.max(0,Math.min(1,to));
+  const from=bgm.volume,t0=performance.now();
+  bgmFade=setInterval(()=>{const k=dur<=0?1:Math.min(1,(performance.now()-t0)/dur);
+    bgm.volume=Math.max(0,Math.min(1,from+(to-from)*k));
+    if(k>=1){clearInterval(bgmFade);bgmFade=0;}},30);}
 function playSnd(f,vol){const a=new Audio(sndUrl(f));a.volume=vol==null?1:vol;a.play().catch(()=>{});activeSnds.push(a);return a;}
 function stopSnds(){clearTimeout(resultTimer);activeSnds.forEach(a=>{a.pause();a.currentTime=0;});activeSnds=[];}
 
