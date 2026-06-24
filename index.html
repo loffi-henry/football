@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-<title>世界盃 12 碼 PK</title>
+<title>行運射門挑戰</title>
 <style>
   *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
   html,body{height:100%;font-family:"PingFang TC","Microsoft JhengHei",system-ui,sans-serif;}
@@ -66,11 +66,11 @@
     background:rgba(12,22,40,.55);backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);
     border:1px solid rgba(255,255,255,.18);box-shadow:0 .6vh 1.6vh rgba(0,0,0,.3);}
 
-  .prompt{position:absolute;top:11.5%;left:0;right:0;text-align:center;color:#fff;
+  .prompt{position:absolute;top:15.5%;left:0;right:0;text-align:center;color:#fff;
     font-size:1.9vh;letter-spacing:.6vh;text-shadow:0 2px 8px rgba(0,0,0,.6);transition:opacity .3s;}
-  .controls{position:absolute;bottom:1%;left:0;right:0;display:flex;justify-content:center;gap:2.8vh;
+  .controls{position:absolute;top:3%;left:0;right:0;display:flex;justify-content:center;gap:2.8vh;
     pointer-events:auto;transition:opacity .3s,transform .3s;}
-  .controls.hidden{opacity:0;transform:translateY(3vh);pointer-events:none;}
+  .controls.hidden{opacity:0;transform:translateY(-3vh);pointer-events:none;}
   /* 透明玻璃按鈕、約縮小一半，避免擋到射手 */
   .aim{width:13.3vh;max-width:27%;cursor:pointer;border:1.5px solid rgba(255,255,255,.6);border-radius:1.7vh;padding:.93vh .66vh;
     background:rgba(255,255,255,.1);box-shadow:none;
@@ -88,7 +88,8 @@
     transition:transform .55s cubic-bezier(.2,1.5,.4,1);}
   #result.show .badge{transform:scale(1) rotate(0);}
   #result .msg{font-size:3vh;font-weight:900;color:#fff;text-shadow:0 2px 10px rgba(0,0,0,.6);margin-top:.6vh;}
-  #result .sub{font-size:2vh;color:#fff;opacity:.95;text-shadow:0 2px 8px rgba(0,0,0,.55);}
+  #result .sub{font-size:2vh;color:#fff;opacity:.95;text-shadow:0 2px 8px rgba(0,0,0,.55);
+    max-width:74%;text-align:center;line-height:1.55;}
   #result button{margin-top:2vh;cursor:pointer;border:none;border-radius:4vh;padding:1.5vh 5vh;
     font-size:2.2vh;font-weight:900;color:#7a3b00;letter-spacing:.4vh;
     background:linear-gradient(180deg,#ffd884,#ff9f1c);box-shadow:0 1vh 2.4vh rgba(0,0,0,.35);}
@@ -115,12 +116,7 @@
   <div id="vignette"></div>
 
   <div class="hud">
-    <div class="brand">世界盃 12 碼 PK</div>
-    <div class="topbar">
-      <div class="team"><img id="avA" alt=""><b>射手</b></div>
-      <div class="vs">VS</div>
-      <div class="team r"><img id="avB" alt=""><b>門將</b></div>
-    </div>
+    <div class="brand">行運射門挑戰</div>
     <div class="prompt" id="prompt">選擇射門路線</div>
     <div class="controls" id="controls">
       <button class="aim" data-dir="left">左路<small>LEFT</small></button>
@@ -156,15 +152,14 @@ const SRC={
   idle:'射手待機背面.png',
   kickL:'射手射門左邊.png',kickC:'射手射門正面.png',kickR:'射手往右射門.png',
   cheer:'射手慶祝.png',regret:'射手遺憾.png',
-  // 守門員：待機 + 側撲(擋下/撲錯) + 正面擋下
-  keeperReady:'守門員待機.png',
+  // 守門員：待機 + 原地跳躍(待機動畫) + 側撲(擋下/撲錯) + 正面擋下
+  keeperReady:'守門員待機.png',keeperJump:'守門員原地跳耀.png',
   saveL:'守門員左邊擋下.png',saveR:'守門員右邊擋下.png',saveC:'守門員正面擋下.png',
   wrongL:'守門員撲錯左邊.png',wrongR:'守門員撲錯右邊.png',
-  ball:'足球.png',goal:'badge_goal.png',save:'badge_save.png',
-  avA:'射手頭像.png',avB:'守門員圖像.png'};
+  ball:'足球.png',goal:'badge_goal.png',save:'badge_save.png'};
 const ERASE={};                                    // 新踢球圖不含球，免抹除
 const NOERODE=new Set();
-const RAW=new Set(['avA','avB']);                  // 頭像為圓形設計、用圓框裁切，免去背
+const RAW=new Set();                               // 全部白底素材，統一去背
 const IMG={};
 function cutout(img,erase,noErode){const w=img.naturalWidth,h=img.naturalHeight;
   const cv=document.createElement('canvas');cv.width=w;cv.height=h;const ctx=cv.getContext('2d');ctx.drawImage(img,0,0);
@@ -194,7 +189,7 @@ async function prepare(){
   await Promise.all(Object.keys(SRC).map(async k=>{
     const im=await loadImg(DIR+encodeURIComponent(SRC[k])+AV);
     IMG[k]= im ? (RAW.has(k) ? im.src : cutout(im,ERASE[k],NOERODE.has(k))) : '';}));
-  const b=await loadImg(DIR+encodeURIComponent('場地圖.png')+AV);STADIUM=b?b.src:'';
+  const b=await loadImg(DIR+encodeURIComponent('新場地圖.png')+AV);STADIUM=b?b.src:'';
 }
 
 /* ===== 流程 ===== */
@@ -210,12 +205,25 @@ function setShooter(p){shooter.src=IMG[p];shooter.style.width=SHT_W[p]+'%';}
 function setScene(){
   $('bg').src=STADIUM;
   keeper.src=IMG.keeperReady; ball.src=IMG.ball; setShooter('idle');
-  $('avA').src=IMG.avA; $('avB').src=IMG.avB;
+  startKeeperHop();
 }
+
+/* 待機時守門員原地小跳步：待機圖<->跳躍圖 交替並上下彈跳 */
+let hopTimer=0;
+function startKeeperHop(){
+  stopKeeperHop();let up=false;
+  keeper.src=IMG.keeperReady;keeper.style.transform='translateX(-50%)';
+  hopTimer=setInterval(()=>{up=!up;
+    keeper.src = up?IMG.keeperJump:IMG.keeperReady;
+    keeper.style.transform = up?'translateX(-50%) translateY(-9%)':'translateX(-50%)';
+  },430);
+}
+function stopKeeperHop(){if(hopTimer){clearInterval(hopTimer);hopTimer=0;}}
 
 function shoot(dir){
   if(state!=='idle')return;
   state='shooting';controls.classList.add('hidden');prompt.style.opacity=0;
+  stopKeeperHop();fadeBgm(0,800);          // 停止跳步、背景音樂淡出
   sfx.kick();
   const isGoal=drawShot();
   // 背面射手踢球（依方向換左/中/右踢球圖）
@@ -254,8 +262,9 @@ function show(win){state='ended';
   // 結束畫面：球跟著角色一起淡出，畫面才不會留一顆球在原地
   ball.style.transition='opacity .3s';ball.style.opacity=0;$('ballShadow').style.opacity=0;
   $('resBadge').src=win?IMG.goal:IMG.save;
-  $('resMsg').textContent=win?'恭喜獲勝！':'差一點！';
-  $('resSub').textContent=win?'成功騙過守門員，招待你一份餐點':'被守門員撲出，再接再厲';
+  $('resMsg').textContent=win?'🏆 行運降臨！':'⚽ 行運差一步';
+  $('resSub').textContent=win?'恭喜射破龍門，獲得行運西多士券乙張，下次來店即可兌換'
+                              :'這次被守門員守住了，但好運還在路上，下次再來試試運氣';
   $('scrim').classList.add('show');$('result').classList.add('show');
   // 結果畫面再補一段：獲勝→中獎音效；落敗→倒彩聲
   resultTimer=setTimeout(()=>playSnd(win?'中獎音效.mp3':'倒彩聲.mp3'),650);}
@@ -263,6 +272,8 @@ function reset(){
   stopSnds();
   $('result').classList.remove('show');$('scrim').classList.remove('show');
   keeper.src=IMG.keeperReady;keeper.style.transition='';keeper.style.width='';keeper.style.left='';keeper.style.transform='translateX(-50%)';
+  startKeeperHop();                                  // 回到待機：恢復原地跳步
+  if(bgmStarted)fadeBgm(.35,500);                    // 背景音樂淡回
   shooter.style.animation='';setShooter('idle');shooter.style.transform='translateX(-50%)';
   ball.style.transition='none';ball.style.left='50%';ball.style.top='auto';ball.style.bottom='31.5%';
   ball.style.transform='translateX(-50%) scale(1)';ball.style.opacity=1;$('ballShadow').style.opacity=1;
@@ -291,6 +302,10 @@ const sndUrl=f=>SND+encodeURIComponent(f);
 const bgm=new Audio(sndUrl('背景音樂.mp3'));bgm.loop=true;bgm.volume=.35;
 let bgmStarted=false,resultTimer=0,activeSnds=[];
 function startBgm(){if(bgmStarted)return;bgmStarted=true;bgm.play().catch(()=>{});}
+let bgmFade=0;
+function fadeBgm(to,dur){cancelAnimationFrame(bgmFade);const from=bgm.volume,t0=performance.now();
+  (function step(now){const k=dur<=0?1:Math.min(1,(now-t0)/dur);bgm.volume=Math.max(0,Math.min(1,from+(to-from)*k));
+    if(k<1)bgmFade=requestAnimationFrame(step);})(performance.now());}
 function playSnd(f,vol){const a=new Audio(sndUrl(f));a.volume=vol==null?1:vol;a.play().catch(()=>{});activeSnds.push(a);return a;}
 function stopSnds(){clearTimeout(resultTimer);activeSnds.forEach(a=>{a.pause();a.currentTime=0;});activeSnds=[];}
 
