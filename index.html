@@ -68,15 +68,15 @@
 
   .prompt{position:absolute;top:15.5%;left:0;right:0;text-align:center;color:#fff;
     font-size:1.9vh;letter-spacing:.6vh;text-shadow:0 2px 8px rgba(0,0,0,.6);transition:opacity .3s;}
-  .controls{position:absolute;top:3%;left:0;right:0;display:flex;justify-content:center;gap:4.2vh;
+  .controls{position:absolute;top:3%;left:0;right:0;display:flex;justify-content:center;gap:5.8vh;
     pointer-events:auto;transition:opacity .3s,transform .3s;}
   .controls.hidden{opacity:0;transform:translateY(-3vh);pointer-events:none;}
   /* 透明玻璃按鈕、約縮小一半，避免擋到射手 */
-  .aim{width:12.5vh;max-width:25%;cursor:pointer;border:1.5px solid rgba(255,255,255,.7);border-radius:1.6vh;padding:.87vh .62vh;
+  .aim{width:17vh;max-width:34%;cursor:pointer;border:1.5px solid rgba(255,255,255,.7);border-radius:2.15vh;padding:1.18vh .84vh;
     background:rgba(255,255,255,.5);box-shadow:none;
-    font-size:1.75vh;font-weight:800;color:#fff;text-shadow:0 1px 5px rgba(0,0,0,.85);transition:transform .09s,background .09s;}
+    font-size:2.38vh;font-weight:800;color:#fff;text-shadow:0 1px 5px rgba(0,0,0,.85);transition:transform .09s,background .09s;}
   .aim:active{transform:translateY(.3vh) scale(.97);background:rgba(255,255,255,.65);}
-  .aim small{display:block;font-size:1.18vh;color:rgba(255,255,255,.9);font-weight:700;letter-spacing:.29vh;margin-top:.26vh;}
+  .aim small{display:block;font-size:1.6vh;color:rgba(255,255,255,.9);font-weight:700;letter-spacing:.4vh;margin-top:.35vh;}
 
   /* ===== 結果 ===== */
   #scrim{position:absolute;inset:0;z-index:14;background:rgba(8,18,38,.5);opacity:0;pointer-events:none;transition:opacity .35s;}
@@ -301,7 +301,10 @@ const SND='assets/'+encodeURIComponent('音效')+'/';
 const sndUrl=f=>SND+encodeURIComponent(f);
 const bgm=new Audio(sndUrl('背景音樂.mp3'));bgm.loop=true;bgm.volume=.35;
 let bgmStarted=false,resultTimer=0,activeSnds=[];
-function startBgm(){if(bgmStarted)return;bgmStarted=true;bgm.play().catch(()=>{});}
+function startBgm(){if(bgmStarted)return;const p=bgm.play();
+  if(p&&p.then)p.then(()=>{bgmStarted=true;}).catch(()=>{});else bgmStarted=true;}
+// 背景音樂：第一次與頁面互動(點/觸/按鍵任何地方)就帶出，不必等到射門
+['pointerdown','touchstart','keydown'].forEach(ev=>window.addEventListener(ev,startBgm,{capture:true}));
 let bgmFade=0;
 function fadeBgm(to,dur){cancelAnimationFrame(bgmFade);const from=bgm.volume,t0=performance.now();
   (function step(now){const k=dur<=0?1:Math.min(1,(now-t0)/dur);bgm.volume=Math.max(0,Math.min(1,from+(to-from)*k));
@@ -315,7 +318,7 @@ function confetti(){const c=['#ffd23c','#ff5a3d','#37d67a','#3b9eff','#fff'];
     d.style.animation=`fall ${1.1+Math.random()*1.2}s linear ${Math.random()*.3}s forwards`;
     document.getElementById('stage').appendChild(d);setTimeout(()=>d.remove(),2800);}}
 
-prepare().then(()=>{setScene();$('loader').style.opacity=0;setTimeout(()=>$('loader').style.display='none',500);});
+prepare().then(()=>{setScene();$('loader').style.opacity=0;setTimeout(()=>$('loader').style.display='none',500);startBgm();});
 </script>
 </body>
 </html>
