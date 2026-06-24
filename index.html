@@ -51,7 +51,8 @@
 
   /* ===== HUD ===== */
   .hud{position:absolute;inset:0;z-index:10;pointer-events:none;}
-  .topbar{position:absolute;top:2.5%;left:0;right:0;display:flex;justify-content:center;align-items:center;gap:1.4vh;}
+  .topbar{position:absolute;top:2.5%;left:0;right:0;display:flex;justify-content:center;align-items:center;gap:1.4vh;
+    transform:scale(.5);transform-origin:top center;}
   .team{display:flex;align-items:center;gap:1vh;background:rgba(255,255,255,.86);
     border:2px solid #fff;border-radius:3vh;padding:.5vh 1.6vh .5vh .5vh;box-shadow:0 .8vh 2vh rgba(10,25,50,.28);}
   .team.r{flex-direction:row-reverse;}
