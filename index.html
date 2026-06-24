@@ -71,11 +71,10 @@
     pointer-events:auto;transition:opacity .3s,transform .3s;}
   .controls.hidden{opacity:0;transform:translateY(3vh);pointer-events:none;}
   /* 透明玻璃按鈕、約縮小一半，避免擋到射手 */
-  .aim{width:10vh;max-width:20%;cursor:pointer;border:1.5px solid rgba(255,255,255,.55);border-radius:1.3vh;padding:.7vh .5vh;
-    background:rgba(255,255,255,.16);backdrop-filter:blur(3px);-webkit-backdrop-filter:blur(3px);
-    box-shadow:0 .4vh 1vh rgba(10,30,60,.22);
-    font-size:1.4vh;font-weight:800;color:#fff;text-shadow:0 1px 4px rgba(0,0,0,.6);transition:transform .09s,background .09s;}
-  .aim:active{transform:translateY(.3vh) scale(.97);background:rgba(255,255,255,.3);}
+  .aim{width:10vh;max-width:20%;cursor:pointer;border:1.5px solid rgba(255,255,255,.6);border-radius:1.3vh;padding:.7vh .5vh;
+    background:rgba(255,255,255,.1);box-shadow:none;
+    font-size:1.4vh;font-weight:800;color:#fff;text-shadow:0 1px 5px rgba(0,0,0,.85);transition:transform .09s,background .09s;}
+  .aim:active{transform:translateY(.3vh) scale(.97);background:rgba(255,255,255,.26);}
   .aim small{display:block;font-size:.95vh;color:rgba(255,255,255,.82);font-weight:700;letter-spacing:.25vh;margin-top:.2vh;}
 
   /* ===== 結果 ===== */
@@ -204,7 +203,7 @@ let state='idle';
 const TARGET={left:{l:43,t:29},center:{l:50,t:33},right:{l:57,t:29}};
 
 // 各姿勢的畫面寬度（新圖長寬比不一，逐一校正讓人物大小協調）
-const SHT_W={idle:16,kickL:21,kickC:12,kickR:16,cheer:17,regret:16};
+const SHT_W={idle:16,kickL:27,kickC:14,kickR:16,cheer:15,regret:17};
 function setShooter(p){shooter.src=IMG[p];shooter.style.width=SHT_W[p]+'%';}
 
 function setScene(){
